@@ -8,13 +8,17 @@ module.exports = sequelize.define('orders', {
         type: Sequalize.INTEGER,
         primaryKey: true
     },
-    category_id: {
-        field: 'category_id',
+    customer_id: {
+        field: 'customer_id',
         type: Sequalize.INTEGER
     },
-    name: {
-        field: 'name',
-        type: Sequalize.STRING,
+    amount: {
+        field: 'amount',
+        type: Sequalize.INTEGER,
+    },
+    order_date: {
+        field: 'order_date',
+        type: Sequalize.DATE
     }
 },{
     timestamps: false
