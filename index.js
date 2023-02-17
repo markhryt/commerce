@@ -4,6 +4,8 @@ const Sequalize = require('sequelize');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 
 const Orders = require('./models/orders');
 const Customers = require('./models/customers');
@@ -14,6 +16,10 @@ const port  = 3000;
 const app = express();
 
 
+
+
+
+app.set('view-engine', 'ejs')
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(session({
@@ -76,9 +82,13 @@ passport.use(new LocalStrategy({
     try {
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, 10);
-  
+      
       // Save the new user to the database
+      
+      const id = uuidv4();
+
       const user = await Customers.create({
+        id,
         email,
         full_name,
         address,
@@ -86,13 +96,41 @@ passport.use(new LocalStrategy({
       });
   
       // Return the new user object
-      res.json(user);
+      // res.json(user);
+      res.render('login.ejs')
+
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Error registering new user.' });
     }
   });
 
+
+  app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+  
+    // Find the user in the database
+    const user = await Customers.findOne({ where: { email } });
+  
+    // If user doesn't exist, send an error response
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+  
+    // Check if the password is correct
+    const isPasswordValid = await bcrypt.compare(password.toString(), user.password);
+  
+    // If the password is incorrect, send an error response
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+  
+    // Create a session for the user
+    req.session.user = user;
+  
+    // Send a success response
+    res.json({ message: 'Login successful' });
+  });
 
 app.get('/api/orders', function ( req, res){
     Orders.findAll().then((orders)=>{
@@ -117,6 +155,21 @@ app.get('/dashboard', passport.authenticate('local', { session: false }), (req, 
   });
 
 
+  app.get('/', (req, res)=>{
+    res.render('index.ejs', {name: 'Mark'});
+  });
+
+  app.get('/login', (req, res)=>{
+    res.render('login.ejs', {name: 'Mark'});
+  });
+
+  app.get('/register', (req, res)=>{
+    res.render('register.ejs', {name: 'Mark'});
+  });
+
+  app.get('/login', (req, res)=>{
+    res.render('login.ejs');
+  })
 app.listen(port, ()=>{
     console.log('Listening on port ' + port);
 });

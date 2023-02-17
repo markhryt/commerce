@@ -4,7 +4,7 @@ const Sequalize = require('sequelize');
 module.exports = sequelize.define('customers', {
     id: {
         field: 'id',
-        type: Sequalize.INTEGER,
+        type: Sequalize.UUID,
         primaryKey: true
     },
     email: {
