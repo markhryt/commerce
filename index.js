@@ -9,8 +9,9 @@ const { v4: uuidv4 } = require('uuid');
 
 const Orders = require('./models/orders');
 const Customers = require('./models/customers');
-
-
+const Products = require('./models/products');
+const Categories = require('./models/categories');
+const Order_details = require('./models/order_details')
 
 const port  = 3000;
 const app = express();
@@ -44,7 +45,7 @@ passport.use(new LocalStrategy({
       }
   
       // Compare password hash
-      const isMatch = await bcrypt.compare(password, user.password);
+      const isMatch = await bcrypt.compare(password, user.password.toString());
   
       // If password does not match
       if (!isMatch) {
@@ -76,6 +77,8 @@ passport.use(new LocalStrategy({
     }
   });
 
+    //POST METHODS
+
   app.post('/register', async (req, res) => {
     const { email, full_name, address, password } = req.body;
   
@@ -106,31 +109,17 @@ passport.use(new LocalStrategy({
   });
 
 
-  app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-  
-    // Find the user in the database
-    const user = await Customers.findOne({ where: { email } });
-  
-    // If user doesn't exist, send an error response
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-  
-    // Check if the password is correct
-    const isPasswordValid = await bcrypt.compare(password.toString(), user.password);
-  
-    // If the password is incorrect, send an error response
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-  
-    // Create a session for the user
-    req.session.user = user;
-  
-    // Send a success response
-    res.json({ message: 'Login successful' });
+  app.post('/login', 
+  passport.authenticate('local', { failureRedirect: '/login' }),
+  function(req, res) {
+    req.login(req.user, function(err) {
+      if (err) { return next(err); }
+      req.session.userId = req.user.id;
+      return res.redirect('/'); 
+    });
   });
+
+    //GET METHODS
 
 app.get('/api/orders', function ( req, res){
     Orders.findAll().then((orders)=>{
@@ -155,21 +144,39 @@ app.get('/dashboard', passport.authenticate('local', { session: false }), (req, 
   });
 
 
-  app.get('/', (req, res)=>{
-    res.render('index.ejs', {name: 'Mark'});
+  app.get('/', async (req, res) => {
+    if (req.isAuthenticated()) {
+      let userId = req.session.userId;
+      let customer = await Customers.findByPk(userId)
+      res.render('index.ejs', {name: customer.full_name});
+    }
+      else {
+      res.render('index.ejs', {name: 'Customer'});
+    }
   });
 
   app.get('/login', (req, res)=>{
-    res.render('login.ejs', {name: 'Mark'});
+    res.render('login.ejs');
   });
 
   app.get('/register', (req, res)=>{
-    res.render('register.ejs', {name: 'Mark'});
+    res.render('register.ejs');
   });
 
   app.get('/login', (req, res)=>{
     res.render('login.ejs');
   })
+
+  app.get('/products', (req, res)=>{
+    res.render('products.ejs')
+  })
+
+  app.get('/categories', (req, res)=>{
+    Categories.findAll().then((categories)=>{
+      res.json(categories);
+    })
+  })
+
 app.listen(port, ()=>{
     console.log('Listening on port ' + port);
 });

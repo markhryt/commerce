@@ -2,24 +2,22 @@ const sequelize = require('./../database/database')
 const Sequalize = require('sequelize');
 
 
-module.exports = sequelize.define('orders', {
+const Orders= sequelize.define('orders', {
     id: {
         field: 'id',
         type: Sequalize.INTEGER,
         primaryKey: true
     },
-    customer_id: {
-        field: 'customer_id',
-        type: Sequalize.INTEGER
-    },
-    amount: {
+   amount: {
         field: 'amount',
         type: Sequalize.INTEGER,
-    },
-    order_date: {
-        field: 'order_date',
-        type: Sequalize.DATE
     }
 },{
     timestamps: false
 });
+
+Orders.associate = function(models){
+    Orders.hasMany(models.Order_details, {foreignKey: 'order_id'})
+  }
+
+  module.exports = Orders;
