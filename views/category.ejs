@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <title><%=category%></title>
+  </head>
+  <body>
+    <% products.forEach(function(product) { %>
+        <div>
+          <h2><%= product.name %></h2>
+          <form method="post" action="/add-to-cart">
+            <input type="hidden" name="product_id" value="<%= product.id %>">
+            <button type="submit">Add to Cart</button>
+          </form>
+        </div>
+      <% }); %>
+  </body>
+</html>

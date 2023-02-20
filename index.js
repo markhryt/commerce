@@ -11,7 +11,8 @@ const Orders = require('./models/orders');
 const Customers = require('./models/customers');
 const Products = require('./models/products');
 const Categories = require('./models/categories');
-const Order_details = require('./models/order_details')
+const Order_details = require('./models/order_details');
+let cart = [];
 
 const port  = 3000;
 const app = express();
@@ -21,6 +22,8 @@ const app = express();
 
 
 app.set('view-engine', 'ejs')
+
+
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(session({
@@ -119,6 +122,21 @@ passport.use(new LocalStrategy({
     });
   });
 
+  app.post('/add-to-cart', async(req, res)=>{
+    const itemId = req.body.product_id;
+    const item = await Products.findByPk(itemId)
+    cart.push(item)
+    res.render('cart.ejs', {cart: cart})
+  })
+
+  app.post('/remove-from-cart', async (req, res)=>{
+    const itemId = req.body.product_id;
+    cart = cart.filter((item)=>{
+      item.id !== itemId
+    })
+    res.render('cart.ejs', {cart: cart})
+  })
+
     //GET METHODS
 
 app.get('/api/orders', function ( req, res){
@@ -167,14 +185,23 @@ app.get('/dashboard', passport.authenticate('local', { session: false }), (req, 
     res.render('login.ejs');
   })
 
-  app.get('/products', (req, res)=>{
-    res.render('products.ejs')
+  app.get('/products', async (req, res)=>{
+    const products = await Products.findAll().then(products => products)
+    res.render('products.ejs', {products: products})
   })
 
-  app.get('/categories', (req, res)=>{
-    Categories.findAll().then((categories)=>{
-      res.json(categories);
-    })
+  app.get('/categories', async (req, res)=>{
+    let categories = await Categories.findAll();
+    res.render('categories.ejs', {categories: categories});
+  })
+  app.get('/categories/:categorie', async (req, res)=>{
+    let categoryId = req.body.category_id;
+    // let category = await Categories.findByPk(categoryId);
+    res.json(categoryId);
+    // res.render('category.ejs', {category: category});
+  })
+  app.get('/cart', (req, res)=>{
+    res.render('cart.ejs', {cart: cart})
   })
 
 app.listen(port, ()=>{

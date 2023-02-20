@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>cart</title>
+  </head>
+    <body>
+        <h1>Cart</h1>
+        <% cart.forEach(function(cartItem) { %>
+          <div>
+                <h3><%= cartItem.name%></h3>
+                <form method="post" action="/remove-from-cart">
+                    <input type="hidden" name="product_id" value="<%= cartItem.id %>">
+                     <button type="submit">remove from cart</button>
+                </form>
+            </div>
+         <% }); %>
+    </body>
+</html>

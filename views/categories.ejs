@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <title>Categories</title>
+    </head>
+    <body>
+        <h1>Categories</h1>
+        <% categories.forEach(function(category) { %>
+          <div>
+            <form ction="/categories/<%= category.name %>" method="post">
+                <input type="hidden" name="category_id" value="<%= category.id %>">
+                 <button type="submit" href="/categories/<%= category.name %>"><%= category.name%></button>
+            </form>
+            </div>
+         <% }); %>
+    </body>
+</html>
+
