@@ -17,7 +17,7 @@ const Order_details= sequelize.define('order_details', {
     },
     order_id: {
         field: 'order_id',
-        type: Sequalize.INTEGER,
+        type: Sequalize.UUID,
         references: {
             model: 'orders',
             key: 'id'

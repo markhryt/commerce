@@ -131,12 +131,47 @@ passport.use(new LocalStrategy({
 
   app.post('/remove-from-cart', async (req, res)=>{
     const itemId = req.body.product_id;
+    
     cart = cart.filter((item)=>{
-      item.id !== itemId
+      item.id != itemId
     })
     res.render('cart.ejs', {cart: cart})
-  })
+  });
 
+  app.post('/categories', async (req, res)=>{
+    const categoryId = req.body.category_id;
+    const category = await Categories.findByPk(categoryId);
+    const products = await Products.findAll({where:{category_id: categoryId}});
+    res.render('category.ejs', {category: category.name, products: products})
+  });
+
+  app.post('/logout', function(req, res){
+    req.logout(function(err) {
+      if (err) { return next(err); }
+      req.session.destroy(function(err) {
+        if (err) { return next(err); }
+        res.redirect('/');
+      });
+    });
+  });
+
+  app.post('/checkout', (req, res)=>{
+    res.render('checkout.ejs', {cart: cart});
+  })
+  app.post('/buy', async (req, res)=>{
+   let id = uuidv4();
+   let amount = cart.length;
+   let userId = req.session.userId;
+   if(amount>1 && req.isAuthenticated()){
+    Orders.create({
+      id: id,
+      amount: amount,
+      customer_id: userId
+    });
+    res.send('Thank you for purchase')
+   }
+  res.redirect('/')
+  })
     //GET METHODS
 
 app.get('/api/orders', function ( req, res){
@@ -202,6 +237,17 @@ app.get('/dashboard', passport.authenticate('local', { session: false }), (req, 
   })
   app.get('/cart', (req, res)=>{
     res.render('cart.ejs', {cart: cart})
+  })
+
+  app.get('/myaccount', async (req, res)=>{
+    if(req.isAuthenticated()){
+      let userId = req.session.userId;
+      let user = await Customers.findByPk(userId);
+      res.render('my-account.ejs', {name: user.full_name});
+    }else{
+      res.redirect('/login');
+    }
+    
   })
 
 app.listen(port, ()=>{

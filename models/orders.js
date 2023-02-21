@@ -5,8 +5,12 @@ const Sequalize = require('sequelize');
 const Orders= sequelize.define('orders', {
     id: {
         field: 'id',
-        type: Sequalize.INTEGER,
+        type: Sequalize.UUID,
         primaryKey: true
+    },
+    customer_id: {
+        field: 'customer_id',
+        type: Sequalize.UUID
     },
    amount: {
         field: 'amount',
